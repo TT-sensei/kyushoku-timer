@@ -21,7 +21,7 @@
       <div class="top-right">
         <div class="top-clock"><span>現在時刻</span><strong id="currentTime">--:--</strong></div>
         <nav class="mode-tabs" aria-label="給食タイムのメニュー">
-          <button class="mode-tab active" data-mode="prepare"><span>🍚</span><b>じゅんび</b></button>
+          <button class="mode-tab" data-mode="prepare"><span>🍚</span><b>じゅんび</b></button>
           <button class="mode-tab" data-mode="mogu"><span>🍎</span><b>もぐもぐ</b></button>
           <button class="mode-tab" data-mode="clock"><span>🕐</span><b>時計</b></button>
           <button class="mode-tab" data-mode="brush"><span>🪥</span><b>はみがき</b></button>
@@ -34,7 +34,16 @@
     </header>
 
     <main class="mode-stage">
-      <section class="mode-panel active" data-panel="prepare">
+      <div class="timer-page-nav">
+        <button class="home-btn" id="homeButton" aria-label="トップページへ戻る">⌂ <span>トップ</span></button>
+        <nav class="page-tabs" aria-label="タイマーを選ぶ">
+          <button class="page-tab" data-mode="prepare">🍚 じゅんび</button>
+          <button class="page-tab" data-mode="mogu">🍎 もぐもぐ</button>
+          <button class="page-tab" data-mode="clock">🕐 時計</button>
+          <button class="page-tab" data-mode="brush">🪥 はみがき</button>
+        </nav>
+      </div>
+      <section class="mode-panel" data-panel="prepare">
         <div class="panel-heading"><span class="eyebrow">PREPARE</span><h2>🍚 給食準備</h2><p id="prepareMessage">準備をはじめよう！</p></div>
         <div class="timer-layout single"><div class="timer-card prepare-card">
           <div class="ring" id="prepareRing"><div class="ring-inner"><span>開始から</span><strong id="prepareTimer">00:00</strong><small>経過時間</small></div></div>
