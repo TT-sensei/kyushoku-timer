@@ -1,6 +1,6 @@
 const STORAGE_KEY='kyushoku-timer:prepare-records:v1';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
-let mode='prepare';let prepare={running:false,startAt:0,elapsed:0};let mogu={running:false,endAt:0,remaining:300};let brush={running:false,endAt:0,remaining:180};
+let mode='home';let prepare={running:false,startAt:0,elapsed:0};let mogu={running:false,endAt:0,remaining:300};let brush={running:false,endAt:0,remaining:180};
 const NAVIS=[
  {name:'なみ',url:'https://tt-sensei.github.io/navi-character-/assets/web/characters/nami/expressions/02-happy.webp'},
  {name:'さく',url:'https://tt-sensei.github.io/navi-character-/assets/web/characters/saku/expressions/02-happy.webp'},
@@ -16,8 +16,11 @@ const records=()=>JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');const save
 function updateClock(){const d=new Date();const time=d.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',hour12:false});$('#currentTime').textContent=time;$('#megaClock').textContent=time;$('#dateLine').textContent=d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'});}
 function setNavi(message,forceNew=true){let i=Math.floor(Math.random()*NAVIS.length);if(forceNew&&NAVIS.length>1&&i===lastNavi)i=(i+1)%NAVIS.length;lastNavi=i;const n=NAVIS[i];const img=$('#floatingNaviImage');img.src=n.url;img.alt=`ナビキャラ ${n.name}`;$('#floatingSpeech').textContent=message;img.classList.remove('navi-pop');void img.offsetWidth;img.classList.add('navi-pop');}
 const MODE_MESSAGES={prepare:'準備をはじめよう！',mogu:'おいしく食べよう！',clock:'今日もおいしく、楽しく。',brush:'きれいにみがこう！'};
-function selectMode(next){if(next===mode)return;if(prepare.running||mogu.running||brush.running){showToast('動いているタイマーを先に止めよう。');return}mode=next;$$('.mode-tab').forEach(b=>b.classList.toggle('active',b.dataset.mode===next));$$('.mode-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===next));setNavi(MODE_MESSAGES[next]);}
-$$('.mode-tab').forEach(b=>b.addEventListener('click',()=>selectMode(b.dataset.mode)));
+function showTimerPage(next){mode=next;$('.top-page').style.display='none';$('.mode-stage').classList.add('is-open');$$('.mode-tab,.page-tab').forEach(b=>b.classList.toggle('active',b.dataset.mode===next));$$('.mode-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===next));setNavi(MODE_MESSAGES[next]);}
+function goHome(){if(prepare.running||mogu.running||brush.running){showToast('動いているタイマーを先に止めよう。');return}mode='home';$('.mode-stage').classList.remove('is-open');$('.top-page').style.display='grid';$$('.mode-tab,.page-tab').forEach(b=>b.classList.remove('active'));setNavi('おいしく食べよう！');}
+function selectMode(next){if(prepare.running||mogu.running||brush.running){showToast('動いているタイマーを先に止めよう。');return}showTimerPage(next);}
+$$('.mode-tab,.page-tab').forEach(b=>b.addEventListener('click',()=>selectMode(b.dataset.mode)));
+$('#homeButton').addEventListener('click',goHome);
 function renderRecordPreview(){const list=$('#recordPreviewList');if(!list)return;const r=records().slice(0,3);if(!r.length){list.innerHTML='<div class="preview-empty">まだ記録がありません。<br>「じゅんび」で記録をつけよう！</div>';return}list.innerHTML=r.map((x,i)=>`<div class="preview-item"><span class="rank">${i+1}</span><span class="date">${x.date}</span><strong>${fmtShort(x.duration)}</strong></div>`).join('')}
 function setPrepareUI(){const sec=prepare.running?(Date.now()-prepare.startAt)/1000:prepare.elapsed;$('#prepareTimer').textContent=fmt(sec);$('#prepareStatus').textContent=prepare.running?'計測中':'待機中';$('#prepareStatusDot').classList.toggle('running',prepare.running);$('#prepareStart').disabled=prepare.running;$('#prepareFinish').disabled=!prepare.running;$('#prepareStart').textContent=prepare.running?'計測中…':'スタート';const pct=Math.min(sec/600*100,100);$('#prepareRing').style.setProperty('--ring',`${pct}%`);}
 function startPrepare(){if(prepare.running)return;prepare.running=true;prepare.startAt=Date.now();prepare.elapsed=0;setNavi('よーい、スタート！');setPrepareUI();}
