@@ -1,12 +1,12 @@
 @import url('https://raw.githubusercontent.com/TT-sensei/kyushoku-timer/1ce5ab3711dfd45c252c569dbcdb605ed3bd0833/style.css');
 
-/* Koboyo SVG icons: 4つのタイマーメニューを統一 */
-.mode-tab span{font-size:0;display:block;width:30px;height:30px;background-color:currentColor;mask:center/contain no-repeat;-webkit-mask:center/contain no-repeat}
+/* Koboyo SVG icons */
+.mode-tab span{font-size:0!important;display:block;width:30px;height:30px;background-color:currentColor;mask:center/contain no-repeat;-webkit-mask:center/contain no-repeat}
 .mode-tab[data-mode="prepare"] span{mask-image:url('./assets/icons/bento-box.svg');-webkit-mask-image:url('./assets/icons/bento-box.svg')}
 .mode-tab[data-mode="mogu"] span{mask-image:url('./assets/icons/eating-school-canteen.svg');-webkit-mask-image:url('./assets/icons/eating-school-canteen.svg')}
 .mode-tab[data-mode="clock"] span{mask-image:url('./assets/icons/symbol-time.svg');-webkit-mask-image:url('./assets/icons/symbol-time.svg')}
 .mode-tab[data-mode="brush"] span{mask-image:url('./assets/icons/cleaning-teeth.svg');-webkit-mask-image:url('./assets/icons/cleaning-teeth.svg')}
-.page-tab{font-size:0;display:flex;align-items:center;justify-content:center;gap:7px}
+.page-tab{font-size:0!important;display:flex;align-items:center;justify-content:center;gap:7px}
 .page-tab::before{content:"";display:block;flex:0 0 22px;width:22px;height:22px;background-color:currentColor;mask:center/contain no-repeat;-webkit-mask:center/contain no-repeat}
 .page-tab::after{font-size:13px;font-weight:900}
 .page-tab[data-mode="prepare"]::before{mask-image:url('./assets/icons/bento-box.svg');-webkit-mask-image:url('./assets/icons/bento-box.svg')}
@@ -17,9 +17,4 @@
 .page-tab[data-mode="mogu"]::after{content:"もぐもぐ"}
 .page-tab[data-mode="clock"]::after{content:"時計"}
 .page-tab[data-mode="brush"]::after{content:"はみがき"}
-@media(max-width:760px){
-  .mode-tab span{width:22px;height:22px}
-  .page-tab{font-size:0;gap:3px}
-  .page-tab::before{width:18px;height:18px;flex-basis:18px}
-  .page-tab::after{font-size:11px}
-}
+@media(max-width:760px){.mode-tab span{width:22px;height:22px}.page-tab{gap:3px}.page-tab::before{width:18px;height:18px;flex-basis:18px}.page-tab::after{font-size:11px}}
