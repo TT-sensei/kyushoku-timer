@@ -9,11 +9,12 @@
   <link rel="stylesheet" href="https://tt-sensei.github.io/edu-kit/style.css">
   <link rel="stylesheet" href="./style.css">
   <style>
-    /* 準備タイマー：説明文を省き、数字を主役にする */
+    /* 準備タイマー：見出しを最小化して数字を主役にする */
     .prepare-card .ring{width:min(360px,55vh);padding:12px}
     .prepare-card .ring-inner strong{font-size:clamp(58px,8vh,84px);margin:6px 0}
     .prepare-card .ring-inner span,.prepare-card .ring-inner small{font-size:12px}
     .prepare-card .status-row{margin:12px 0 10px}
+    .prepare-heading{display:none}
   </style>
 </head>
 <body>
@@ -51,7 +52,7 @@
         </nav>
       </div>
       <section class="mode-panel" data-panel="prepare">
-        <div class="panel-heading"><span class="eyebrow">PREPARE</span><h2>🍚 給食準備</h2></div>
+        <div class="panel-heading prepare-heading"><span class="eyebrow">PREPARE</span><h2>🍚 給食準備</h2></div>
         <div class="timer-layout single"><div class="timer-card prepare-card">
           <div class="ring" id="prepareRing"><div class="ring-inner"><span>開始から</span><strong id="prepareTimer">00:00</strong><small>経過時間</small></div></div>
           <div class="status-row"><span class="status-dot" id="prepareStatusDot"></span><span id="prepareStatus">待機中</span></div>
