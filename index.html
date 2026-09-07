@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff8ed">
+  <meta name="description" content="教室で毎日使える、視覚的で楽しい給食時間タイマー。準備・もぐもぐ・時計・はみがきを1画面で。">
+  <title>給食タイム｜教室タイマー</title>
+  <link rel="stylesheet" href="https://tt-sensei.github.io/edu-kit/style.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <img class="hero-image" src="./assets/eating-top.jpg" alt="給食を楽しむ教室のイメージ">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="brand-pill">🍚 きょうの給食タイム</div>
+        <h1>給食タイム</h1>
+        <p>見ればわかる。みんなで気持ちよく給食の時間。</p>
+      </div>
+      <div class="clock-chip"><span>現在時刻</span><strong id="currentTime">--:--</strong></div>
+    </header>
+
+    <nav class="mode-tabs" aria-label="タイマーモード">
+      <button class="mode-tab active" data-mode="prepare"><span>🍚</span><b>準備</b></button>
+      <button class="mode-tab" data-mode="mogu"><span>🍎</span><b>もぐもぐ</b></button>
+      <button class="mode-tab" data-mode="clock"><span>🕐</span><b>時計</b></button>
+      <button class="mode-tab" data-mode="brush"><span>🪥</span><b>はみがき</b></button>
+    </nav>
+
+    <main>
+      <section class="mode-panel active" data-panel="prepare">
+        <div class="panel-heading"><span class="eyebrow">PREPARE</span><h2>🍚 給食準備</h2><p id="prepareMessage">準備をはじめよう！</p></div>
+        <div class="timer-layout">
+          <div class="timer-card prepare-card">
+            <div class="ring" id="prepareRing"><div class="ring-inner"><span>開始から</span><strong id="prepareTimer">00:00</strong><small>経過時間</small></div></div>
+            <div class="status-row"><span class="status-dot" id="prepareStatusDot"></span><span id="prepareStatus">待機中</span></div>
+            <div class="action-row">
+              <button class="primary-btn" id="prepareStart">スタート</button>
+              <button class="secondary-btn" id="prepareFinish" disabled>いただきます</button>
+              <button class="ghost-btn" id="prepareReset">リセット</button>
+            </div>
+            <button class="record-link" id="openRecords">📊 準備の記録を見る</button>
+          </div>
+          <aside class="navi-card"><div class="speech" id="prepareSpeech">よーい、スタート！</div><img class="navi" src="https://raw.githubusercontent.com/TT-sensei/navi-character-/main/assets/characters/nami/fullbody/complete.png" alt="ナビキャラ なみ"><div class="navi-caption">なみ</div></aside>
+        </div>
+      </section>
+
+      <section class="mode-panel" data-panel="mogu">
+        <div class="panel-heading"><span class="eyebrow">MOGU MOGU</span><h2>🍎 もぐもぐタイム</h2><p>5分、おいしくゆっくり食べよう。</p></div>
+        <div class="timer-layout">
+          <div class="timer-card mogu-card">
+            <div class="countdown-label">あと</div><div class="big-count" id="moguTimer">5:00</div>
+            <div class="apple-track" id="appleTrack" aria-label="残り時間の目安"></div>
+            <div class="mogu-note" id="moguNote">りんごを見ながら、もぐもぐ。</div>
+            <div class="action-row"><button class="primary-btn" id="moguStart">スタート</button><button class="secondary-btn" id="moguReset">リセット</button></div>
+          </div>
+          <aside class="navi-card food-navi"><div class="speech" id="moguSpeech">おいしく食べよう！</div><img class="navi" src="https://raw.githubusercontent.com/TT-sensei/navi-character-/main/assets/characters/nami/fullbody/complete.png" alt="ナビキャラ なみ"><div class="navi-caption">なみ</div></aside>
+        </div>
+      </section>
+
+      <section class="mode-panel" data-panel="clock">
+        <div class="clock-panel"><span class="eyebrow">CLOCK</span><div class="mega-clock" id="megaClock">--:--</div><div class="date-line" id="dateLine">----</div><p>給食の時間</p><div class="clock-character"><img src="https://raw.githubusercontent.com/TT-sensei/navi-character-/main/assets/characters/nami/fullbody/complete.png" alt="ナビキャラ なみ"><span>今日もおいしく、楽しく。</span></div></div>
+      </section>
+
+      <section class="mode-panel" data-panel="brush">
+        <div class="panel-heading"><span class="eyebrow">BRUSH</span><h2>🪥 はみがき</h2><p>3分、ていねいにみがこう。</p></div>
+        <div class="timer-layout">
+          <div class="timer-card brush-card">
+            <div class="countdown-label">あと</div><div class="big-count" id="brushTimer">3:00</div>
+            <div class="teeth-track" id="teethTrack"></div>
+            <div class="brush-guide" id="brushGuide">スタートしたら、ゆっくりみがこう。</div>
+            <div class="action-row"><button class="primary-btn" id="brushStart">スタート</button><button class="secondary-btn" id="brushReset">リセット</button></div>
+          </div>
+          <aside class="navi-card"><div class="speech" id="brushSpeech">きれいにみがこう！</div><img class="navi" src="https://raw.githubusercontent.com/TT-sensei/navi-character-/main/assets/characters/nami/fullbody/complete.png" alt="ナビキャラ なみ"><div class="navi-caption">なみ</div></aside>
+        </div>
+      </section>
+    </main>
+
+    <footer><span>給食タイム</span><span>・</span><span>教室で毎日使えるタイマー</span></footer>
+  </div>
+
+  <div class="modal-backdrop" id="recordModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="recordTitle">
+      <button class="modal-close" id="closeRecords" aria-label="閉じる">×</button>
+      <span class="eyebrow">RECORD</span><h2 id="recordTitle">🍚 準備の記録</h2>
+      <div class="stats"><div><span>今週の平均</span><strong id="avgStat">--</strong></div><div><span>最短</span><strong id="bestStat">--</strong></div></div>
+      <div class="chart" id="recordChart"></div>
+      <div class="record-list" id="recordList"></div>
+      <button class="danger-btn" id="clearRecords">記録をすべて削除</button>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
