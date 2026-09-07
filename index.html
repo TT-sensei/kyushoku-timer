@@ -9,12 +9,46 @@
   <link rel="stylesheet" href="https://tt-sensei.github.io/edu-kit/style.css">
   <link rel="stylesheet" href="./style.css">
   <style>
-    /* 準備タイマー：見出しを最小化して数字を主役にする */
-    .prepare-card .ring{width:min(360px,55vh);padding:12px}
-    .prepare-card .ring-inner strong{font-size:clamp(58px,8vh,84px);margin:6px 0}
-    .prepare-card .ring-inner span,.prepare-card .ring-inner small{font-size:12px}
-    .prepare-card .status-row{margin:12px 0 10px}
-    .prepare-heading{display:none}
+    /* 4画面共通：左にアナログ時計、右にタイマー */
+    .mode-panel[data-panel="prepare"],.mode-panel[data-panel="mogu"],.mode-panel[data-panel="clock"],.mode-panel[data-panel="brush"]{padding:0 3vw}
+    .panel-heading{display:none!important}
+    .prepare-split{height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:clamp(20px,4vw,72px)}
+    .clock-side,.timer-side{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .analog-clock{position:relative;width:min(390px,55vh,42vw);aspect-ratio:1;border-radius:50%;background:#fff;border:10px solid rgba(91,73,53,.13);box-shadow:0 18px 42px rgba(80,65,45,.13),inset 0 0 0 2px rgba(255,255,255,.9);flex:0 0 auto}
+    .analog-clock::before{content:"";position:absolute;inset:7%;border-radius:50%;border:2px solid rgba(120,100,75,.12);background:repeating-conic-gradient(from -3deg,rgba(120,100,75,.24) 0deg 1deg,transparent 1deg 30deg)}
+    .clock-mark{position:absolute;left:50%;top:50%;width:4px;height:15px;border-radius:5px;background:#6d6256;transform:translate(-50%,-50%) rotate(calc(var(--i)*30deg)) translateY(calc(min(390px,55vh,42vw)*-.36));transform-origin:center}
+    .clock-number{position:absolute;left:50%;top:50%;font-weight:800;font-size:clamp(16px,2.2vh,24px);color:#4f473f;transform:translate(-50%,-50%) rotate(calc(var(--i)*30deg)) translateY(calc(min(390px,55vh,42vw)*-.405)) rotate(calc(var(--i)*-30deg))}
+    .clock-hand{position:absolute;left:50%;top:50%;z-index:3;width:7px;border-radius:99px;background:#4f473f;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(var(--angle));box-shadow:0 2px 5px rgba(0,0,0,.12)}
+    .clock-hand.hour{height:25%;width:9px}.clock-hand.minute{height:34%;width:7px}.clock-hand.second{height:38%;width:3px;background:#d87852}
+    .clock-center{position:absolute;z-index:5;left:50%;top:50%;width:18px;height:18px;border-radius:50%;background:#4f473f;border:4px solid #fff;transform:translate(-50%,-50%);box-shadow:0 2px 5px rgba(0,0,0,.15)}
+    .clock-caption{margin-top:14px;font-size:13px;font-weight:800;letter-spacing:.08em;color:#756a5d}
+    .timer-side .ring{width:min(360px,54vh,40vw);padding:12px}
+    .timer-side .ring-inner strong{font-size:clamp(68px,9vh,100px);margin:4px 0}
+    .timer-side .ring-inner span,.timer-side .ring-inner small{font-size:12px}
+    .timer-side .status-row{margin:10px 0}
+    .timer-side .action-row{justify-content:center;flex-wrap:wrap}
+    .pause-btn{min-width:112px}
+    .countdown-label{font-size:14px;font-weight:800;letter-spacing:.12em;color:#66746a;margin-bottom:2px}
+    .timer-side .big-count{font-size:clamp(78px,11vh,118px);line-height:.95}
+    .timer-side .apple-track,.timer-side .teeth-track{max-width:min(500px,42vw);width:100%;margin:18px auto 8px}
+    .timer-side .mogu-note,.timer-side .brush-guide{min-height:28px;margin:5px 0 8px}
+    .clock-digital{font-size:clamp(76px,11vh,128px);font-weight:900;letter-spacing:-.04em;line-height:1;color:#51483f}
+    .clock-date{margin-top:14px;font-size:15px;font-weight:700;color:#756a5d}
+    .clock-message{margin-top:8px;font-weight:800;color:#8a6f57}
+    .mode-panel[data-panel="mogu"]{background:#e8f1e9;border-radius:28px}
+    .mode-panel[data-panel="brush"]{background:#eaf4fb;border-radius:28px}
+    .mode-panel[data-panel="clock"]{background:#fff;border-radius:28px}
+    .mode-panel[data-panel="prepare"]{background:transparent}
+    @media(max-width:760px){
+      .mode-panel[data-panel="prepare"],.mode-panel[data-panel="mogu"],.mode-panel[data-panel="clock"],.mode-panel[data-panel="brush"]{padding:0 12px}
+      .prepare-split{grid-template-columns:1fr;gap:8px;overflow:auto;padding:12px 0 24px}
+      .analog-clock{width:min(280px,52vw)}
+      .clock-mark{transform:translate(-50%,-50%) rotate(calc(var(--i)*30deg)) translateY(-101px)}
+      .clock-number{transform:translate(-50%,-50%) rotate(calc(var(--i)*30deg)) translateY(-113px) rotate(calc(var(--i)*-30deg))}
+      .timer-side .ring{width:min(310px,72vw)}
+      .timer-side .big-count{font-size:clamp(64px,12vw,92px)}
+      .clock-digital{font-size:clamp(64px,16vw,100px)}
+    }
   </style>
 </head>
 <body>
@@ -51,51 +85,63 @@
           <button class="page-tab" data-mode="brush">🪥 はみがき</button>
         </nav>
       </div>
+
       <section class="mode-panel" data-panel="prepare">
-        <div class="panel-heading prepare-heading"><span class="eyebrow">PREPARE</span><h2>🍚 給食準備</h2></div>
-        <div class="timer-layout single"><div class="timer-card prepare-card">
-          <div class="ring" id="prepareRing"><div class="ring-inner"><span>開始から</span><strong id="prepareTimer">00:00</strong><small>経過時間</small></div></div>
-          <div class="status-row"><span class="status-dot" id="prepareStatusDot"></span><span id="prepareStatus">待機中</span></div>
-          <div class="action-row"><button class="primary-btn" id="prepareStart">スタート</button><button class="secondary-btn" id="prepareFinish" disabled>いただきます</button><button class="ghost-btn" id="prepareReset">リセット</button></div>
-        </div></div>
+        <div class="prepare-split">
+          <div class="clock-side">
+            <div class="analog-clock" id="analogClock" aria-label="現在時刻">
+              <span class="clock-number" style="--i:0">12</span><span class="clock-number" style="--i:1">1</span><span class="clock-number" style="--i:2">2</span><span class="clock-number" style="--i:3">3</span><span class="clock-number" style="--i:4">4</span><span class="clock-number" style="--i:5">5</span><span class="clock-number" style="--i:6">6</span><span class="clock-number" style="--i:7">7</span><span class="clock-number" style="--i:8">8</span><span class="clock-number" style="--i:9">9</span><span class="clock-number" style="--i:10">10</span><span class="clock-number" style="--i:11">11</span>
+              <span class="clock-mark" style="--i:0"></span><span class="clock-mark" style="--i:1"></span><span class="clock-mark" style="--i:2"></span><span class="clock-mark" style="--i:3"></span><span class="clock-mark" style="--i:4"></span><span class="clock-mark" style="--i:5"></span><span class="clock-mark" style="--i:6"></span><span class="clock-mark" style="--i:7"></span><span class="clock-mark" style="--i:8"></span><span class="clock-mark" style="--i:9"></span><span class="clock-mark" style="--i:10"></span><span class="clock-mark" style="--i:11"></span>
+              <span class="clock-hand hour" id="analogHour"></span><span class="clock-hand minute" id="analogMinute"></span><span class="clock-hand second" id="analogSecond"></span><span class="clock-center"></span>
+            </div><div class="clock-caption">いまの時刻</div>
+          </div>
+          <div class="timer-side"><div class="timer-card prepare-card">
+            <div class="ring" id="prepareRing"><div class="ring-inner"><span>開始から</span><strong id="prepareTimer">00:00</strong><small>経過時間</small></div></div>
+            <div class="status-row"><span class="status-dot" id="prepareStatusDot"></span><span id="prepareStatus">待機中</span></div>
+            <div class="action-row"><button class="primary-btn" id="prepareStart">スタート</button><button class="pause-btn secondary-btn" id="preparePause" disabled>一時停止</button><button class="secondary-btn" id="prepareFinish" disabled>いただきます</button><button class="ghost-btn" id="prepareReset">リセット</button></div>
+          </div></div>
+        </div>
       </section>
+
       <section class="mode-panel" data-panel="mogu">
-        <div class="panel-heading"><span class="eyebrow">MOGU MOGU</span><h2>🍎 もぐもぐタイム</h2><p>5分、おいしくゆっくり食べよう。</p></div>
-        <div class="timer-layout single"><div class="timer-card mogu-card">
-          <div class="countdown-label">あと</div><div class="big-count" id="moguTimer">5:00</div>
-          <div class="apple-track" id="appleTrack" aria-label="残り時間の目安"></div>
-          <div class="mogu-note" id="moguNote">りんごを見ながら、もぐもぐ。</div>
-          <div class="action-row"><button class="primary-btn" id="moguStart">スタート</button><button class="secondary-btn" id="moguReset">リセット</button></div>
-        </div></div>
+        <div class="prepare-split">
+          <div class="clock-side"><div class="analog-clock" aria-hidden="true">
+            <span class="clock-number" style="--i:0">12</span><span class="clock-number" style="--i:3">3</span><span class="clock-number" style="--i:6">6</span><span class="clock-number" style="--i:9">9</span><span class="clock-mark" style="--i:0"></span><span class="clock-mark" style="--i:1"></span><span class="clock-mark" style="--i:2"></span><span class="clock-mark" style="--i:3"></span><span class="clock-mark" style="--i:4"></span><span class="clock-mark" style="--i:5"></span><span class="clock-mark" style="--i:6"></span><span class="clock-mark" style="--i:7"></span><span class="clock-mark" style="--i:8"></span><span class="clock-mark" style="--i:9"></span><span class="clock-mark" style="--i:10"></span><span class="clock-mark" style="--i:11"></span><span class="clock-hand hour" id="moguAnalogHour"></span><span class="clock-hand minute" id="moguAnalogMinute"></span><span class="clock-hand second" id="moguAnalogSecond"></span><span class="clock-center"></span>
+          </div><div class="clock-caption">いまの時刻</div></div>
+          <div class="timer-side"><div class="timer-card mogu-card">
+            <div class="countdown-label">あと</div><div class="big-count" id="moguTimer">5:00</div><div class="apple-track" id="appleTrack" aria-label="残り時間の目安"></div><div class="mogu-note" id="moguNote">りんごを見ながら、もぐもぐ。</div>
+            <div class="action-row"><button class="primary-btn" id="moguStart">スタート</button><button class="pause-btn secondary-btn" id="moguPause" disabled>一時停止</button><button class="secondary-btn" id="moguReset">リセット</button></div>
+          </div></div>
+        </div>
       </section>
+
       <section class="mode-panel" data-panel="clock">
-        <div class="clock-panel"><span class="eyebrow">CLOCK</span><div class="mega-clock" id="megaClock">--:--</div><div class="date-line" id="dateLine">----</div><p>給食の時間</p></div>
+        <div class="prepare-split">
+          <div class="clock-side"><div class="analog-clock" aria-hidden="true">
+            <span class="clock-number" style="--i:0">12</span><span class="clock-number" style="--i:3">3</span><span class="clock-number" style="--i:6">6</span><span class="clock-number" style="--i:9">9</span><span class="clock-mark" style="--i:0"></span><span class="clock-mark" style="--i:1"></span><span class="clock-mark" style="--i:2"></span><span class="clock-mark" style="--i:3"></span><span class="clock-mark" style="--i:4"></span><span class="clock-mark" style="--i:5"></span><span class="clock-mark" style="--i:6"></span><span class="clock-mark" style="--i:7"></span><span class="clock-mark" style="--i:8"></span><span class="clock-mark" style="--i:9"></span><span class="clock-mark" style="--i:10"></span><span class="clock-mark" style="--i:11"></span><span class="clock-hand hour" id="clockAnalogHour"></span><span class="clock-hand minute" id="clockAnalogMinute"></span><span class="clock-hand second" id="clockAnalogSecond"></span><span class="clock-center"></span>
+          </div><div class="clock-caption">いまの時刻</div></div>
+          <div class="clock-side"><div class="clock-digital" id="megaClock">--:--</div><div class="clock-date" id="dateLine">----</div><div class="clock-message">給食の時間を意識しよう</div></div>
+        </div>
       </section>
+
       <section class="mode-panel" data-panel="brush">
-        <div class="panel-heading"><span class="eyebrow">BRUSH</span><h2>🪥 はみがき</h2><p>3分、ていねいにみがこう。</p></div>
-        <div class="timer-layout single"><div class="timer-card brush-card">
-          <div class="countdown-label">あと</div><div class="big-count" id="brushTimer">3:00</div>
-          <div class="teeth-track" id="teethTrack"></div>
-          <div class="brush-guide" id="brushGuide">スタートしたら、ゆっくりみがこう。</div>
-          <div class="action-row"><button class="primary-btn" id="brushStart">スタート</button><button class="secondary-btn" id="brushReset">リセット</button></div>
-        </div></div>
+        <div class="prepare-split">
+          <div class="clock-side"><div class="analog-clock" aria-hidden="true">
+            <span class="clock-number" style="--i:0">12</span><span class="clock-number" style="--i:3">3</span><span class="clock-number" style="--i:6">6</span><span class="clock-number" style="--i:9">9</span><span class="clock-mark" style="--i:0"></span><span class="clock-mark" style="--i:1"></span><span class="clock-mark" style="--i:2"></span><span class="clock-mark" style="--i:3"></span><span class="clock-mark" style="--i:4"></span><span class="clock-mark" style="--i:5"></span><span class="clock-mark" style="--i:6"></span><span class="clock-mark" style="--i:7"></span><span class="clock-mark" style="--i:8"></span><span class="clock-mark" style="--i:9"></span><span class="clock-mark" style="--i:10"></span><span class="clock-mark" style="--i:11"></span><span class="clock-hand hour" id="brushAnalogHour"></span><span class="clock-hand minute" id="brushAnalogMinute"></span><span class="clock-hand second" id="brushAnalogSecond"></span><span class="clock-center"></span>
+          </div><div class="clock-caption">いまの時刻</div></div>
+          <div class="timer-side"><div class="timer-card brush-card">
+            <div class="countdown-label">あと</div><div class="big-count" id="brushTimer">3:00</div><div class="teeth-track" id="teethTrack"></div><div class="brush-guide" id="brushGuide">スタートしたら、ゆっくりみがこう。</div>
+            <div class="action-row"><button class="primary-btn" id="brushStart">スタート</button><button class="pause-btn secondary-btn" id="brushPause" disabled>一時停止</button><button class="secondary-btn" id="brushReset">リセット</button></div>
+          </div></div>
+        </div>
       </section>
     </main>
 
-    <div class="floating-navi" id="floatingNavi" aria-live="polite">
-      <div class="floating-speech" id="floatingSpeech">おいしく食べよう！</div>
-      <img id="floatingNaviImage" class="floating-navi-image" src="https://tt-sensei.github.io/navi-character-/assets/web/characters/sora/expressions/02-happy.webp" alt="ナビキャラ">
-    </div>
+    <div class="floating-navi" id="floatingNavi" aria-live="polite"><div class="floating-speech" id="floatingSpeech">おいしく食べよう！</div><img id="floatingNaviImage" class="floating-navi-image" src="https://tt-sensei.github.io/navi-character-/assets/web/characters/sora/expressions/02-happy.webp" alt="ナビキャラ"></div>
     <footer><span>給食タイム</span><span>・</span><span>教室で毎日使えるタイマー</span></footer>
   </div>
 
-  <div class="modal-backdrop" id="recordModal" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="recordTitle">
-      <button class="modal-close" id="closeRecords" aria-label="閉じる">×</button><span class="eyebrow">RECORD</span><h2 id="recordTitle">🍚 準備の記録</h2>
-      <div class="stats"><div><span>今週の平均</span><strong id="avgStat">--</strong></div><div><span>最短</span><strong id="bestStat">--</strong></div></div>
-      <div class="chart" id="recordChart"></div><div class="record-list" id="recordList"></div><button class="danger-btn" id="clearRecords">記録をすべて削除</button>
-    </div>
-  </div>
+  <div class="modal-backdrop" id="recordModal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="recordTitle"><button class="modal-close" id="closeRecords" aria-label="閉じる">×</button><span class="eyebrow">RECORD</span><h2 id="recordTitle">🍚 準備の記録</h2><div class="stats"><div><span>今週の平均</span><strong id="avgStat">--</strong></div><div><span>最短</span><strong id="bestStat">--</strong></div></div><div class="chart" id="recordChart"></div><div class="record-list" id="recordList"></div><button class="danger-btn" id="clearRecords">記録をすべて削除</button></div></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="./app.js"></script>
 </body>
