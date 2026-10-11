@@ -2,8 +2,8 @@ const STORAGE_KEY='kyushoku-timer:prepare-records:v1';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 let mode='home';
 let prepare={running:false,paused:false,startAt:0,elapsed:0};
-let mogu={running:false,paused:false,endAt:0,remaining:timerDurations.mogu};
-let brush={running:false,paused:false,endAt:0,remaining:timerDurations.brush};
+let mogu={running:false,paused:false,endAt:0,remaining:300};
+let brush={running:false,paused:false,endAt:0,remaining:180};
 const NAVIS=[
  {name:'なみ',url:'https://tt-sensei.github.io/navi-character-/assets/web/characters/nami/expressions/02-happy.webp'},
  {name:'さく',url:'https://tt-sensei.github.io/navi-character-/assets/web/characters/saku/expressions/02-happy.webp'},
