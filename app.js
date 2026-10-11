@@ -2,8 +2,8 @@ const STORAGE_KEY='kyushoku-timer:prepare-records:v1';
 const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
 let mode='home';
 let prepare={running:false,paused:false,startAt:0,elapsed:0};
-let mogu={running:false,paused:false,endAt:0,remaining:300};
-let brush={running:false,paused:false,endAt:0,remaining:180};
+let mogu={running:false,paused:false,endAt:0,remaining:timerDurations.mogu};
+let brush={running:false,paused:false,endAt:0,remaining:timerDurations.brush};
 const NAVIS=[
  {name:'なみ',url:'https://tt-sensei.github.io/navi-character-/assets/web/characters/nami/expressions/02-happy.webp'},
  {name:'さく',url:'https://tt-sensei.github.io/navi-character-/assets/web/characters/saku/expressions/02-happy.webp'},
@@ -13,6 +13,42 @@ const NAVIS=[
  {name:'りく',url:'https://tt-sensei.github.io/navi-character-/assets/web/characters/riku/expressions/02-happy.webp'}
 ];
 let lastNavi=-1;
+const TIMER_SETTINGS_KEY='kyushoku-timer:durations:v1';
+function getTimerDurations(){try{return {...{mogu:300,brush:180},...JSON.parse(localStorage.getItem(TIMER_SETTINGS_KEY)||'{}')}}catch{return {mogu:300,brush:180}}}
+let timerDurations=getTimerDurations();
+function installDurationControls(){
+  [['mogu','moguTimer','もぐもぐ'],['brush','brushTimer','はみがき']].forEach(([key,id,label])=>{
+    const display=$('#'+id);if(!display)return;
+    const row=document.createElement('div');row.className='timer-value-row';
+    display.parentNode.insertBefore(row,display);row.append(display);
+    const add=document.createElement('button');add.type='button';add.className='duration-open-btn';add.textContent='＋';add.setAttribute('aria-label',label+'タイマーの時間を設定');add.title='時間を設定';
+    row.append(add);
+    const panel=document.createElement('div');panel.className='duration-settings';panel.hidden=true;
+    panel.innerHTML='<label>分 <input type="number" min="0" max="180" step="1" inputmode="numeric" data-duration-min></label><label>秒 <input type="number" min="0" max="59" step="1" inputmode="numeric" data-duration-sec></label><button type="button" class="duration-apply-btn">この時間に設定</button>';
+    display.parentNode.insertBefore(panel,row.nextSibling);
+    const minInput=panel.querySelector('[data-duration-min]'),secInput=panel.querySelector('[data-duration-sec]');
+    const sync=()=>{const seconds=timerDurations[key];minInput.value=Math.floor(seconds/60);secInput.value=seconds%60};
+    sync();
+    add.addEventListener('click',()=>{
+      const timer=key==='mogu'?mogu:brush;
+      if(timer.running){showToast('時間を変えるときは、一時停止してね。');return}
+      panel.hidden=!panel.hidden;add.classList.toggle('is-open',!panel.hidden);
+      if(!panel.hidden)sync();
+    });
+    panel.querySelector('.duration-apply-btn').addEventListener('click',()=>{
+      const timer=key==='mogu'?mogu:brush;
+      if(timer.running){showToast('時間を変えるときは、一時停止してね。');return}
+      const mins=Math.min(180,Math.max(0,Number.parseInt(minInput.value,10)||0));
+      const secs=Math.min(59,Math.max(0,Number.parseInt(secInput.value,10)||0));
+      const total=mins*60+secs;
+      if(total<1){showToast('1秒以上の時間を設定してね。');return}
+      timerDurations[key]=total;localStorage.setItem(TIMER_SETTINGS_KEY,JSON.stringify(timerDurations));
+      if(key==='mogu'){mogu={running:false,paused:false,endAt:0,remaining:total};renderApples();updateMogu();$('#moguStart').disabled=false;$('#moguStart').textContent='スタート';$('#moguPause').disabled=true}
+      else{brush={running:false,paused:false,endAt:0,remaining:total};renderTeeth();updateBrush();$('#brushStart').disabled=false;$('#brushStart').textContent='スタート';$('#brushPause').disabled=true}
+      panel.hidden=true;add.classList.remove('is-open');showToast(label+'タイマーを設定したよ。');
+    });
+  });
+}
 const fmt=n=>{n=Math.max(0,Math.floor(n));const m=Math.floor(n/60),s=n%60;return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`};
 const fmtShort=n=>{n=Math.max(0,Math.round(n));return `${Math.floor(n/60)}分${String(n%60).padStart(2,'0')}秒`};
 const records=()=>JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');const saveRecords=r=>{localStorage.setItem(STORAGE_KEY,JSON.stringify(r.slice(0,90)));renderRecordPreview()};
@@ -51,15 +87,15 @@ function finishPrepare(){if(!prepare.running)return;prepare.elapsed=(Date.now()-
 function resetPrepare(){prepare={running:false,paused:false,startAt:0,elapsed:0};setNavi('準備をはじめよう！');setPrepareUI()}
 $('#prepareStart').addEventListener('click',startPrepare);$('#preparePause').addEventListener('click',pausePrepare);$('#prepareFinish').addEventListener('click',finishPrepare);$('#prepareReset').addEventListener('click',resetPrepare);
 function renderApples(){const track=$('#appleTrack');track.innerHTML='';for(let i=0;i<10;i++){const span=document.createElement('span');span.className='apple';span.textContent='🍎';span.dataset.index=i;track.appendChild(span)}}
-function updateMogu(){const rem=mogu.running?Math.max(0,(mogu.endAt-Date.now())/1000):mogu.remaining;mogu.remaining=rem;$('#moguTimer').textContent=`${Math.floor(rem/60)}:${String(Math.floor(rem%60)).padStart(2,'0')}`;const gone=Math.min(10,Math.floor((300-rem)/30));$$('.apple').forEach((a,i)=>a.classList.toggle('gone',i<gone));const msg=rem<=0?'ごちそうさまでした！':mogu.paused?'一時停止中。':rem<=30?'もう少し！':rem<=150?'もぐもぐ、もぐもぐ。':'おいしく食べよう！';$('#moguNote').textContent=msg;if(mogu.running&&rem<=0)finishMogu()}
-function startMogu(){if(mogu.running)return;const wasPaused=mogu.paused;if(mogu.remaining<=0)mogu.remaining=300;mogu.running=true;mogu.paused=false;mogu.endAt=Date.now()+mogu.remaining*1000;$('#moguStart').textContent='もぐもぐ中…';$('#moguStart').disabled=true;$('#moguPause').disabled=false;setNavi(wasPaused?'もぐもぐを再開しよう！':'もぐもぐ、スタート！');updateMogu()}
+function updateMogu(){const rem=mogu.running?Math.max(0,(mogu.endAt-Date.now())/1000):mogu.remaining;mogu.remaining=rem;$('#moguTimer').textContent=`${Math.floor(rem/60)}:${String(Math.floor(rem%60)).padStart(2,'0')}`;const gone=Math.min(10,Math.floor((timerDurations.mogu-rem)/(timerDurations.mogu/10)));$$('.apple').forEach((a,i)=>a.classList.toggle('gone',i<gone));const msg=rem<=0?'ごちそうさまでした！':mogu.paused?'一時停止中。':rem<=30?'もう少し！':rem<=150?'もぐもぐ、もぐもぐ。':'おいしく食べよう！';$('#moguNote').textContent=msg;if(mogu.running&&rem<=0)finishMogu()}
+function startMogu(){if(mogu.running)return;const wasPaused=mogu.paused;if(mogu.remaining<=0)mogu.remaining=timerDurations.mogu;mogu.running=true;mogu.paused=false;mogu.endAt=Date.now()+mogu.remaining*1000;$('#moguStart').textContent='もぐもぐ中…';$('#moguStart').disabled=true;$('#moguPause').disabled=false;setNavi(wasPaused?'もぐもぐを再開しよう！':'もぐもぐ、スタート！');updateMogu()}
 function pauseMogu(){if(!mogu.running)return;mogu.remaining=Math.max(0,(mogu.endAt-Date.now())/1000);mogu.running=false;mogu.paused=true;$('#moguStart').disabled=false;$('#moguStart').textContent='再開';$('#moguPause').disabled=true;updateMogu();setNavi('ひとやすみ。ゆっくり食べよう！')}
 function finishMogu(){mogu.running=false;mogu.paused=false;mogu.remaining=0;$('#moguStart').disabled=false;$('#moguStart').textContent='もう一度スタート';$('#moguPause').disabled=true;renderApples();updateMogu();$('#moguNote').textContent='5分終了！ごちそうさまでした。';setNavi('ごちそうさまでした！');showToast('もぐもぐタイム終了！')}
 function resetMogu(){mogu={running:false,paused:false,endAt:0,remaining:300};$('#moguStart').disabled=false;$('#moguStart').textContent='スタート';$('#moguPause').disabled=true;renderApples();updateMogu();setNavi('もう一度スタートできるよ！')}
 $('#moguStart').addEventListener('click',startMogu);$('#moguPause').addEventListener('click',pauseMogu);$('#moguReset').addEventListener('click',resetMogu);
 function renderTeeth(){const track=$('#teethTrack');if(!track)return;track.innerHTML='';for(let i=0;i<12;i++){const span=document.createElement('span');span.className='tooth';span.textContent='🦷';span.dataset.index=i;track.appendChild(span)}}
-function updateBrush(){const rem=brush.running?Math.max(0,(brush.endAt-Date.now())/1000):brush.remaining;brush.remaining=rem;$('#brushTimer').textContent=`${Math.floor(rem/60)}:${String(Math.floor(rem%60)).padStart(2,'0')}`;const done=Math.min(12,Math.floor((180-rem)/15));$$('.tooth').forEach((t,i)=>t.classList.toggle('done',i<done));const msg=rem<=0?'はみがき、おしまい！':brush.paused?'一時停止中。':'ていねいに、しゅっしゅっ！';$('#brushGuide').textContent=msg;if(brush.running&&rem<=0)finishBrush()}
-function startBrush(){if(brush.running)return;const wasPaused=brush.paused;if(brush.remaining<=0)brush.remaining=180;brush.running=true;brush.paused=false;brush.endAt=Date.now()+brush.remaining*1000;$('#brushStart').textContent='みがき中…';$('#brushStart').disabled=true;$('#brushPause').disabled=false;setNavi(wasPaused?'はみがきを再開しよう！':'はみがき、スタート！');updateBrush()}
+function updateBrush(){const rem=brush.running?Math.max(0,(brush.endAt-Date.now())/1000):brush.remaining;brush.remaining=rem;$('#brushTimer').textContent=`${Math.floor(rem/60)}:${String(Math.floor(rem%60)).padStart(2,'0')}`;const done=Math.min(12,Math.floor((timerDurations.brush-rem)/(timerDurations.brush/12)));$$('.tooth').forEach((t,i)=>t.classList.toggle('done',i<done));const msg=rem<=0?'はみがき、おしまい！':brush.paused?'一時停止中。':'ていねいに、しゅっしゅっ！';$('#brushGuide').textContent=msg;if(brush.running&&rem<=0)finishBrush()}
+function startBrush(){if(brush.running)return;const wasPaused=brush.paused;if(brush.remaining<=0)brush.remaining=timerDurations.brush;brush.running=true;brush.paused=false;brush.endAt=Date.now()+brush.remaining*1000;$('#brushStart').textContent='みがき中…';$('#brushStart').disabled=true;$('#brushPause').disabled=false;setNavi(wasPaused?'はみがきを再開しよう！':'はみがき、スタート！');updateBrush()}
 function pauseBrush(){if(!brush.running)return;brush.remaining=Math.max(0,(brush.endAt-Date.now())/1000);brush.running=false;brush.paused=true;$('#brushStart').disabled=false;$('#brushStart').textContent='再開';$('#brushPause').disabled=true;updateBrush();setNavi('ひとやすみ。ゆっくりみがこう！')}
 function finishBrush(){brush.running=false;brush.paused=false;brush.remaining=0;$('#brushStart').disabled=false;$('#brushStart').textContent='もう一度スタート';$('#brushPause').disabled=true;renderTeeth();updateBrush();$('#brushGuide').textContent='3分終了！おつかれさま。';setNavi('きれいになったね！');showToast('はみがきタイム終了！')}
 function resetBrush(){brush={running:false,paused:false,endAt:0,remaining:180};$('#brushStart').disabled=false;$('#brushStart').textContent='スタート';$('#brushPause').disabled=true;renderTeeth();updateBrush();setNavi('準備OK！')}
@@ -68,4 +104,4 @@ function deleteRecord(index){const r=records();if(index<0||index>=r.length)retur
 function openRecords(){const r=records();const now=new Date();const weekStart=new Date(now);const day=(now.getDay()+6)%7;weekStart.setDate(now.getDate()-day);weekStart.setHours(0,0,0,0);const weekly=r.filter(x=>new Date(`${x.date}T00:00:00`)>=weekStart);const avg=weekly.length?weekly.reduce((a,x)=>a+x.duration,0)/weekly.length:null;const best=r.length?Math.min(...r.map(x=>x.duration)):null;$('#avgStat').textContent=avg===null?'--':fmtShort(avg);$('#bestStat').textContent=best===null?'--':fmtShort(best);const list=$('#recordList');list.innerHTML=r.length?r.slice(0,14).map((x,i)=>`<div class="record-item"><span>${x.date}<br>${x.startTime} → ${x.endTime}</span><strong>${fmtShort(x.duration)}</strong><button class="record-delete" data-record-index="${i}" type="button" aria-label="${x.date} ${fmtShort(x.duration)}の記録を削除">削除</button></div>`).join(''):'<div class="record-item"><span>まだ記録がありません。</span><strong>--</strong></div>';const chart=$('#recordChart');chart.innerHTML='';const recent=r.slice(0,7).reverse();const max=Math.max(600,...recent.map(x=>x.duration));recent.forEach(x=>{const w=document.createElement('div');w.className='bar-wrap';const b=document.createElement('div');b.className='bar';b.style.height=`${Math.max(5,x.duration/max*100)}%`;b.title=`${x.date} ${fmtShort(x.duration)}`;const l=document.createElement('div');l.className='bar-label';l.textContent=x.date.slice(5);w.append(b,l)});$('#recordModal').hidden=false}
 $('#openRecords').addEventListener('click',openRecords);$('#closeRecords').addEventListener('click',()=>$('#recordModal').hidden=true);$('#recordModal').addEventListener('click',e=>{if(e.target.id==='recordModal')e.currentTarget.hidden=true});$('#recordList').addEventListener('click',e=>{const btn=e.target.closest('.record-delete');if(btn)deleteRecord(Number(btn.dataset.recordIndex))});$('#clearRecords').addEventListener('click',()=>{if(confirm('準備の記録をすべて削除しますか？')){localStorage.removeItem(STORAGE_KEY);renderRecordPreview();openRecords();showToast('記録を削除したよ。')}});
 let toastTimer;function showToast(text){const t=$('#toast');t.textContent=text;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
-function loop(){if(prepare.running)setPrepareUI();if(mogu.running)updateMogu();if(brush.running)updateBrush();updateClock()}setInterval(loop,250);updateClock();renderApples();renderTeeth();updateMogu();updateBrush();setPrepareUI();renderRecordPreview();setNavi('おいしく食べよう！',false);
+function loop(){if(prepare.running)setPrepareUI();if(mogu.running)updateMogu();if(brush.running)updateBrush();updateClock()}setInterval(loop,250);updateClock();renderApples();renderTeeth();installDurationControls();updateMogu();updateBrush();setPrepareUI();renderRecordPreview();setNavi('おいしく食べよう！',false);
