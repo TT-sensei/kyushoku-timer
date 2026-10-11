@@ -64,7 +64,7 @@ function updateAnalogClocks(h,m,s){
 function updateClock(){
   const d=new Date();
   const time=d.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',hour12:false});
-  const current=$('#currentTime');if(current)current.textContent=time;$('.clock-digital-mini').forEach(el=>el.textContent=time);
+  const current=$('#currentTime');if(current)current.textContent=time;$$('.clock-digital-mini').forEach(el=>el.textContent=time);
   const mega=$('#megaClock');if(mega)mega.textContent=time;
   const date=$('#dateLine');if(date)date.textContent=d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
   const sec=d.getSeconds()+d.getMilliseconds()/1000;
