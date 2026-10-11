@@ -14,8 +14,18 @@ const NAVIS=[
 ];
 let lastNavi=-1;
 const TIMER_SETTINGS_KEY='kyushoku-timer:durations:v1';
-function getTimerDurations(){try{return {...{mogu:300,brush:180},...JSON.parse(localStorage.getItem(TIMER_SETTINGS_KEY)||'{}')}}catch{return {mogu:300,brush:180}}}
+function getTimerDurations(){
+  const defaults={mogu:300,brush:180};
+  try{
+    const saved=JSON.parse(localStorage.getItem(TIMER_SETTINGS_KEY)||'{}');
+    const valid=value=>Number.isFinite(value)&&value>=1&&value<=10800?Math.floor(value):null;
+    return {mogu:valid(saved?.mogu)??defaults.mogu,brush:valid(saved?.brush)??defaults.brush};
+  }catch{return defaults}
+}
 let timerDurations=getTimerDurations();
+// 保存済みの設定を、最初に表示する残り時間にも反映する。
+mogu.remaining=timerDurations.mogu;
+brush.remaining=timerDurations.brush;
 function installDurationControls(){
   [['mogu','moguTimer','もぐもぐ'],['brush','brushTimer','はみがき']].forEach(([key,id,label])=>{
     const display=$('#'+id);if(!display)return;
@@ -56,7 +66,7 @@ function installDurationControls(){
       const mins=Math.min(180,Math.max(0,Number.parseInt(minInput.value,10)||0));
       const secs=Math.min(59,Math.max(0,Number.parseInt(secInput.value,10)||0));
       const total=mins*60+secs;
-      if(total<1){showToast('1秒以上の時間を設定してね。');return}
+      if(total<30){showToast('30秒以上の時間を設定してね。');return}
       timerDurations[key]=total;localStorage.setItem(TIMER_SETTINGS_KEY,JSON.stringify(timerDurations));
       if(key==='mogu'){mogu={running:false,paused:false,endAt:0,remaining:total};renderApples();updateMogu();$('#moguStart').disabled=false;$('#moguStart').textContent='スタート';$('#moguPause').disabled=true}
       else{brush={running:false,paused:false,endAt:0,remaining:total};renderTeeth();updateBrush();$('#brushStart').disabled=false;$('#brushStart').textContent='スタート';$('#brushPause').disabled=true}
@@ -98,7 +108,7 @@ function renderRecordPreview(){const list=$('#recordPreviewList');if(!list)retur
 function setPrepareUI(){const sec=prepare.running?(Date.now()-prepare.startAt)/1000:prepare.elapsed;$('#prepareTimer').textContent=fmt(sec);$('#prepareStatus').textContent=prepare.running?'計測中':prepare.paused?'一時停止中':'待機中';$('#prepareStatusDot').classList.toggle('running',prepare.running);$('#prepareStart').disabled=prepare.running;$('#prepareFinish').disabled=!prepare.running;$('#preparePause').disabled=!prepare.running&&!prepare.paused;$('#prepareStart').textContent=prepare.paused?'再開':'スタート';$('#preparePause').textContent='一時停止';const pct=Math.min(sec/600*100,100);$('#prepareRing').style.setProperty('--ring',`${pct}%`);}
 function startPrepare(){if(prepare.running)return;const wasPaused=prepare.paused;if(wasPaused){prepare.running=true;prepare.startAt=Date.now()-prepare.elapsed*1000}else{prepare.running=true;prepare.paused=false;prepare.startAt=Date.now();prepare.elapsed=0}prepare.paused=false;setNavi(wasPaused?'準備を再開しよう！':'よーい、スタート！');setPrepareUI()}
 function pausePrepare(){if(!prepare.running)return;prepare.elapsed=(Date.now()-prepare.startAt)/1000;prepare.running=false;prepare.paused=true;setPrepareUI();setNavi('ひとやすみ。時間を確認しよう！')}
-function finishPrepare(){if(!prepare.running)return;prepare.elapsed=(Date.now()-prepare.startAt)/1000;prepare.running=false;prepare.paused=false;const duration=Math.round(prepare.elapsed);const now=new Date();const end=now.toISOString();const start=new Date(now.getTime()-duration*1000);const r=records();r.unshift({date:end.slice(0,10),startTime:start.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}),endTime:now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}),duration});saveRecords(r);setNavi(`できた！${fmtShort(duration)}！`);$('#prepareFinish').classList.add('celebrate');setTimeout(()=>$('#prepareFinish').classList.remove('celebrate'),600);setPrepareUI();showToast('準備時間を記録したよ。')}
+function finishPrepare(){if(!prepare.running)return;prepare.elapsed=(Date.now()-prepare.startAt)/1000;prepare.running=false;prepare.paused=false;const duration=Math.round(prepare.elapsed);const now=new Date();const start=new Date(now.getTime()-duration*1000);const localDate=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;const r=records();r.unshift({date:localDate,startTime:start.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}),endTime:now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}),duration});saveRecords(r);setNavi(`できた！${fmtShort(duration)}！`);$('#prepareFinish').classList.add('celebrate');setTimeout(()=>$('#prepareFinish').classList.remove('celebrate'),600);setPrepareUI();showToast('準備時間を記録したよ。')}
 function resetPrepare(){prepare={running:false,paused:false,startAt:0,elapsed:0};setNavi('準備をはじめよう！');setPrepareUI()}
 $('#prepareStart').addEventListener('click',startPrepare);$('#preparePause').addEventListener('click',pausePrepare);$('#prepareFinish').addEventListener('click',finishPrepare);$('#prepareReset').addEventListener('click',resetPrepare);
 function renderApples(){const track=$('#appleTrack');track.innerHTML='';for(let i=0;i<10;i++){const span=document.createElement('span');span.className='apple';span.textContent='🍎';span.dataset.index=i;track.appendChild(span)}}
