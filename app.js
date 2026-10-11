@@ -19,13 +19,14 @@ let timerDurations=getTimerDurations();
 function installDurationControls(){
   [['mogu','moguTimer','もぐもぐ'],['brush','brushTimer','はみがき']].forEach(([key,id,label])=>{
     const display=$('#'+id);if(!display)return;
+    const parent=display.parentNode;
     const row=document.createElement('div');row.className='timer-value-row';
-    display.parentNode.insertBefore(row,display);row.append(display);
+    parent.insertBefore(row,display);row.append(display);
     const add=document.createElement('button');add.type='button';add.className='duration-open-btn';add.textContent='＋';add.setAttribute('aria-label',label+'タイマーの時間を設定');add.title='時間を設定';
     row.append(add);
     const panel=document.createElement('div');panel.className='duration-settings';panel.hidden=true;
     panel.innerHTML='<label>分 <input type="number" min="0" max="180" step="1" inputmode="numeric" data-duration-min></label><label>秒 <input type="number" min="0" max="59" step="1" inputmode="numeric" data-duration-sec></label><button type="button" class="duration-apply-btn">この時間に設定</button>';
-    display.parentNode.insertBefore(panel,row.nextSibling);
+    parent.insertBefore(panel,row.nextSibling);
     const minInput=panel.querySelector('[data-duration-min]'),secInput=panel.querySelector('[data-duration-sec]');
     const sync=()=>{const seconds=timerDurations[key];minInput.value=Math.floor(seconds/60);secInput.value=seconds%60};
     sync();
