@@ -21,19 +21,33 @@ function installDurationControls(){
     const display=$('#'+id);if(!display)return;
     const parent=display.parentNode;
     const row=document.createElement('div');row.className='timer-value-row';
-    parent.insertBefore(row,display);row.append(display);
-    const add=document.createElement('button');add.type='button';add.className='duration-open-btn';add.textContent='＋';add.setAttribute('aria-label',label+'タイマーの時間を設定');add.title='時間を設定';
-    row.append(add);
+    parent.insertBefore(row,display);
+    const minus=document.createElement('button');minus.type='button';minus.className='duration-step-btn';minus.textContent='−';minus.setAttribute('aria-label',label+'タイマーを30秒短くする');minus.title='30秒短くする';
+    const add=document.createElement('button');add.type='button';add.className='duration-step-btn';add.textContent='＋';add.setAttribute('aria-label',label+'タイマーを30秒長くする');add.title='30秒長くする';
+    const settings=document.createElement('button');settings.type='button';settings.className='duration-open-btn';settings.textContent='⚙';settings.setAttribute('aria-label',label+'タイマーの時間を細かく設定');settings.title='時間を細かく設定';
+    row.append(minus,display,add,settings);
     const panel=document.createElement('div');panel.className='duration-settings';panel.hidden=true;
     panel.innerHTML='<label>分 <input type="number" min="0" max="180" step="1" inputmode="numeric" data-duration-min></label><label>秒 <input type="number" min="0" max="59" step="1" inputmode="numeric" data-duration-sec></label><button type="button" class="duration-apply-btn">この時間に設定</button>';
     parent.insertBefore(panel,row.nextSibling);
     const minInput=panel.querySelector('[data-duration-min]'),secInput=panel.querySelector('[data-duration-sec]');
     const sync=()=>{const seconds=timerDurations[key];minInput.value=Math.floor(seconds/60);secInput.value=seconds%60};
     sync();
-    add.addEventListener('click',()=>{
+    const changeBy=(delta)=>{
       const timer=key==='mogu'?mogu:brush;
       if(timer.running){showToast('時間を変えるときは、一時停止してね。');return}
-      panel.hidden=!panel.hidden;add.classList.toggle('is-open',!panel.hidden);
+      const total=Math.min(10800,Math.max(30,timerDurations[key]+delta));
+      if(total===timerDurations[key]){showToast(delta<0?'これ以上短くできないよ。':'これ以上長くできないよ。');return}
+      timerDurations[key]=total;localStorage.setItem(TIMER_SETTINGS_KEY,JSON.stringify(timerDurations));
+      if(key==='mogu'){mogu={running:false,paused:false,endAt:0,remaining:total};renderApples();updateMogu();$('#moguStart').disabled=false;$('#moguStart').textContent='スタート';$('#moguPause').disabled=true}
+      else{brush={running:false,paused:false,endAt:0,remaining:total};renderTeeth();updateBrush();$('#brushStart').disabled=false;$('#brushStart').textContent='スタート';$('#brushPause').disabled=true}
+      sync();showToast(label+'タイマーを'+(delta<0?'30秒短く':'30秒長く')+'したよ。');
+    };
+    minus.addEventListener('click',()=>changeBy(-30));
+    add.addEventListener('click',()=>changeBy(30));
+    settings.addEventListener('click',()=>{
+      const timer=key==='mogu'?mogu:brush;
+      if(timer.running){showToast('時間を変えるときは、一時停止してね。');return}
+      panel.hidden=!panel.hidden;settings.classList.toggle('is-open',!panel.hidden);
       if(!panel.hidden)sync();
     });
     panel.querySelector('.duration-apply-btn').addEventListener('click',()=>{
@@ -46,7 +60,7 @@ function installDurationControls(){
       timerDurations[key]=total;localStorage.setItem(TIMER_SETTINGS_KEY,JSON.stringify(timerDurations));
       if(key==='mogu'){mogu={running:false,paused:false,endAt:0,remaining:total};renderApples();updateMogu();$('#moguStart').disabled=false;$('#moguStart').textContent='スタート';$('#moguPause').disabled=true}
       else{brush={running:false,paused:false,endAt:0,remaining:total};renderTeeth();updateBrush();$('#brushStart').disabled=false;$('#brushStart').textContent='スタート';$('#brushPause').disabled=true}
-      panel.hidden=true;add.classList.remove('is-open');showToast(label+'タイマーを設定したよ。');
+      panel.hidden=true;settings.classList.remove('is-open');showToast(label+'タイマーを設定したよ。');
     });
   });
 }
