@@ -30,3 +30,11 @@ footer{display:flex;justify-content:center;gap:8px;color:#9a8d7f;font-size:10px;
 .duration-open-btn{font-size:20px}
 .timer-value-row{gap:8px}
 @media(max-width:760px){.duration-step-btn{width:34px;height:34px;font-size:22px}.duration-open-btn{width:34px;height:34px;font-size:18px}.timer-value-row{gap:6px}}
+
+/* 終了状態を一目で確認できるようにし、タッチ操作もしやすくする */
+.timer-card.is-finished{outline:3px solid #4d9675;outline-offset:3px;box-shadow:0 0 0 7px rgba(77,150,117,.12),0 12px 30px rgba(35,80,58,.12)}
+.timer-card.is-finished .big-count{color:#347a64}
+.duration-step-btn,.duration-open-btn{min-width:44px;min-height:44px;cursor:pointer;touch-action:manipulation}
+.duration-settings input,.duration-apply-btn{min-height:44px}
+.duration-step-btn:focus-visible,.duration-open-btn:focus-visible,.duration-apply-btn:focus-visible,.duration-settings input:focus-visible{outline:3px solid #2368b0;outline-offset:3px}
+@media(max-width:760px){.duration-step-btn,.duration-open-btn{width:44px;height:44px;font-size:23px}.timer-value-row{gap:5px}}
