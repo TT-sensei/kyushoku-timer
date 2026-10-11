@@ -38,3 +38,12 @@ footer{display:flex;justify-content:center;gap:8px;color:#9a8d7f;font-size:10px;
 .duration-settings input,.duration-apply-btn{min-height:44px}
 .duration-step-btn:focus-visible,.duration-open-btn:focus-visible,.duration-apply-btn:focus-visible,.duration-settings input:focus-visible{outline:3px solid #2368b0;outline-offset:3px}
 @media(max-width:760px){.duration-step-btn,.duration-open-btn{width:44px;height:44px;font-size:23px}.timer-value-row{gap:5px}}
+
+
+/* 次のタイマーへ進む導線：現在の画面に合わせて1つだけ表示 */
+.next-step-btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:48px;min-width:210px;max-width:280px;margin-top:14px;padding:0 22px;border:1px solid #d9e6dc;border-radius:15px;background:#edf6f0;color:#2f705a;font-size:15px;font-weight:900;box-shadow:0 5px 14px rgba(45,90,70,.09);transition:transform .15s,background .15s,box-shadow .15s;touch-action:manipulation}
+.next-step-btn span{font-size:20px;line-height:1;transition:transform .15s}
+.next-step-btn:hover{background:#e1f0e6;transform:translateY(-1px);box-shadow:0 7px 16px rgba(45,90,70,.13)}
+.next-step-btn:hover span{transform:translateX(3px)}
+.next-step-btn:focus-visible{outline:3px solid #2368b0;outline-offset:3px}
+@media(max-width:760px){.next-step-btn{min-height:48px;min-width:0;width:min(100%,280px);margin-top:8px;font-size:14px}}
